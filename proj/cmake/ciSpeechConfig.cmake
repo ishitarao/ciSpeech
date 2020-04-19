@@ -5,48 +5,37 @@ if(NOT TARGET ciSpeech)
     # Define ${CINDER_PATH} as usual.
     get_filename_component(CINDER_PATH "${ciSpeech_PROJECT_ROOT}/../.." ABSOLUTE)
 
-    # Make a list of source files and define that to be ${SOURCE_LIST}.
-    file(GLOB SOURCE_LIST CONFIGURE_DEPENDS
-            "${ciSpeech_PROJECT_ROOT}/src/**/*.h"
-            "${ciSpeech_PROJECT_ROOT}/src/**/*.hpp"
-            "${ciSpeech_PROJECT_ROOT}/src/**/*.cc"
-            "${ciSpeech_PROJECT_ROOT}/src/**/*.cpp"
-            "${ciSpeech_PROJECT_ROOT}/src/**/*.c"
-            "${ciSpeech_PROJECT_ROOT}/src/*.h"
-            "${ciSpeech_PROJECT_ROOT}/src/*.hpp"
-            "${ciSpeech_PROJECT_ROOT}/src/*.cc"
-            "${ciSpeech_PROJECT_ROOT}/src/*.cpp"
-            "${ciSpeech_PROJECT_ROOT}/src/*.c")
+    # Translate the <staticLibrary> tag.
+    # pocketsphinx
+    add_library(pocketsphinx STATIC IMPORTED)
+    set_property(TARGET pocketsphinx PROPERTY IMPORTED_LOCATION "${ciSpeech_PROJECT_ROOT}/lib/macosx/libpocketsphinx.a")
 
-    # Create the library!
+    # sphinxbase
+    add_library(sphinxbase STATIC IMPORTED)
+    set_property(TARGET sphinxbase PROPERTY IMPORTED_LOCATION "${ciSpeech_PROJECT_ROOT}/lib/macosx/libsphinxbase.a")
+
+    # Translate the <sourcePattern> tag.
+    file(GLOB SOURCE_LIST CONFIGURE_DEPENDS
+            "${ciSpeech_PROJECT_ROOT}/src/sphinx/*.cpp"
+            )
+
+    # Create the library from the source files. The target is now defined.
     add_library(ciSpeech ${SOURCE_LIST})
 
-    # Add include directories.
-    # Notice that `cinderblock.xml` has `<includePath>src</includePath>`.
-    # So you need to set `../../src/` to include.
-    target_include_directories(ciSpeech PUBLIC "${ciSpeech_PROJECT_ROOT}/src" )
-    target_include_directories(ciSpeech SYSTEM BEFORE PUBLIC "${CINDER_PATH}/include" )
+    # Link the prebuilt libraries.
+    target_link_libraries(ciSpeech pocketsphinx sphinxbase)
+
+    # Translate <includePath> tag.
     target_include_directories(ciSpeech PUBLIC
-            "${CMAKE_CURRENT_LIST_DIR}/../../include"
-            "${CMAKE_CURRENT_LIST_DIR}/../../include/pocketsphinx"
-            "${CMAKE_CURRENT_LIST_DIR}/../../include/sphinxbase"
+            "${ciSpeech_PROJECT_ROOT}/include"
+            "${ciSpeech_PROJECT_ROOT}/include/pocketsphinx"
+            "${ciSpeech_PROJECT_ROOT}/include/sphinxbase"
             )
+
+    # Translate <headerPattern> tag.
     target_include_directories(ciSpeech PRIVATE
-            "${CMAKE_CURRENT_LIST_DIR}/../../include/sphinx"
+            "${ciSpeech_PROJECT_ROOT}/include/sphinx"
             )
 
-
-    # If your Cinder block has no source code but instead pre-build libraries,
-    # you can specify all of them here (uncomment the below line and adjust to your needs).
-    # Make sure to use the libraries for the right platform.
-    # # target_link_libraries(ciSpeech "${Cinder-OpenCV_PROJECT_ROOT}/lib/libopencv_core.a")
-
-    if(NOT TARGET cinder)
-        include("${CINDER_PATH}/proj/cmake/configure.cmake")
-        find_package(cinder REQUIRED PATHS
-                "${CINDER_PATH}/${CINDER_LIB_DIRECTORY}"
-                "$ENV{CINDER_PATH}/${CINDER_LIB_DIRECTORY}")
-    endif()
-    target_link_libraries(ciSpeech PRIVATE cinder)
-
+    target_include_directories(ciSpeech SYSTEM BEFORE PUBLIC "${CINDER_PATH}/include" )
 endif()
