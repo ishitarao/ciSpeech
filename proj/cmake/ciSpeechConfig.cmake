@@ -26,6 +26,14 @@ if(NOT TARGET ciSpeech)
     # So you need to set `../../src/` to include.
     target_include_directories(ciSpeech PUBLIC "${ciSpeech_PROJECT_ROOT}/src" )
     target_include_directories(ciSpeech SYSTEM BEFORE PUBLIC "${CINDER_PATH}/include" )
+    target_include_directories(ciSpeech PUBLIC
+            "${CMAKE_CURRENT_LIST_DIR}/../../include"
+            "${CMAKE_CURRENT_LIST_DIR}/../../include/pocketsphinx"
+            "${CMAKE_CURRENT_LIST_DIR}/../../include/sphinxbase"
+            )
+    target_include_directories(ciSpeech PRIVATE
+            "${CMAKE_CURRENT_LIST_DIR}/../../include/sphinx"
+            )
 
 
     # If your Cinder block has no source code but instead pre-build libraries,
